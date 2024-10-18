@@ -1,0 +1,45 @@
+.wrapper {
+    .title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    h5 {
+        font-size: var(--root-font-size);
+        color: #757575;
+        font-weight: 500;
+    }
+
+    button {
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+
+        svg {
+            color: #757575;
+            width: 20px;
+            height: 20px;
+            display: flex;
+        }
+    }
+
+    // Block
+
+    .icon {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.block_header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    height: 46px;
+
+    h2 {
+        font-size: calc(var(--root-font-size) + 4px);
+    }
+}

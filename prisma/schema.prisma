@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+enum ROLE {
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  username      String?
+  password      String?
+  role          ROLE      @default(MEMBER)
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Image {
+  id   String @id @default(cuid())
+  url  String
+  name String @unique
+  size Float
+  type String
+
+  products   ImagesForProducts[]
+  variants   Variant[]
+  categories Category[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id                String   @id @default(cuid())
+  title             String
+  description       String?
+  category_id       String
+  category          Category @relation(fields: [category_id], references: [id])
+  price             String?
+  core              String?
+  quantity_tracking Boolean  @default(false)
+  continue_selling  Boolean  @default(false)
+  inventory         Int?     @default(0)
+  region_of_origin  String?
+  activate          String?
+  product_type      String?
+  supplies          String?
+  tags              String[] @default([])
+
+  form_combines FormCombine[]
+  images        ImagesForProducts[]
+  variants      Variant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ImagesForProducts {
+  id String @id @default(cuid())
+
+  product_id String?
+  product    Product? @relation(fields: [product_id], references: [id])
+
+  image_id String?
+  image    Image?  @relation(fields: [image_id], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FormCombine {
+  id         String   @id @default(cuid())
+  date_id    Float
+  title      String?
+  values     String[]
+  isDone     Boolean  @default(true)
+  product_id String?
+  product    Product? @relation(fields: [product_id], references: [id])
+}
+
+model Variant {
+  id String @id @default(cuid())
+
+  product_id   String?
+  product      Product? @relation(fields: [product_id], references: [id])
+  image_id     String?
+  image        Image?   @relation(fields: [image_id], references: [id])
+  combinations String[] @default([])
+  price        String?
+  available    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  image_id String?
+  image    Image?    @relation(fields: [image_id], references: [id])
+  title    String
+  products Product[]
+}

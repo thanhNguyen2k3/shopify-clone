@@ -1,0 +1,25 @@
+.wrapper {
+    cursor: pointer;
+}
+
+.box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.arrow {
+    display: flex;
+    flex-direction: column;
+
+    svg {
+        width: 8px;
+        height: 8px;
+        color: #aeaeae;
+        stroke-width: 36px;
+
+        &.active {
+            color: #000;
+        }
+    }
+}

@@ -1,0 +1,34 @@
+.modal_box {
+    width: var(--modal-confirm-width);
+    background-color: #fff;
+    border-radius: var(--root-radius);
+    overflow: hidden;
+
+    .header {
+        h2 {
+            font-size: 14px !important;
+        }
+
+        font-weight: 600;
+        padding: 16px;
+
+        background-color: #f3f3f3;
+        border-bottom: var(--root-border-table);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .body {
+        padding: 16px;
+    }
+
+    .footer {
+        border-top: var(--root-border-table);
+        padding: 16px;
+        background-color: #f3f3f3;
+        display: flex;
+        justify-content: right;
+        column-gap: 8px;
+    }
+}

@@ -1,0 +1,122 @@
+.wrapper {
+    min-height: 22px;
+    min-width: 40px;
+    border-radius: var(--root-radius);
+    cursor: pointer;
+    border: none;
+    outline: none;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 8px;
+    color: currentColor;
+
+    &:active {
+        box-shadow: -0.0625rem 0rem 0.0625rem 0rem rgba(26, 26, 26, 0.122) inset,
+            0.0625rem 0rem 0.0625rem 0rem rgba(26, 26, 26, 0.122) inset,
+            0rem 0.125rem 0.0625rem 0rem rgba(26, 26, 26, 0.2) inset;
+    }
+}
+
+.primary {
+    text-align: center;
+    color: #ffffff;
+    font-weight: 600;
+    height: 28px;
+    background-color: var(--children-color);
+    box-shadow: 0rem -0.0625rem 0rem 0.0625rem rgba(0, 0, 0, 0.8) inset,
+        0rem 0rem 0rem 0.0625rem rgba(48, 48, 48, 1) inset,
+        0rem 0.03125rem 0rem 0.09375rem rgba(255, 255, 255, 0.25) inset;
+
+    &:hover {
+        background-color: #000000;
+    }
+}
+
+.secondary {
+    background-color: #e3e3e3;
+    height: 28px;
+    box-shadow: 0rem -0.0625rem 0rem 0rem #b5b5b5 inset, 0rem 0rem 0rem 0.0625rem rgba(0, 0, 0, 0.1) inset,
+        0rem 0.03125rem 0rem 0.09375rem #fff inset;
+
+    &:hover {
+        background-color: #d4d4d4;
+    }
+}
+
+.defaulted {
+    background-color: transparent;
+    height: 28px;
+    color: #4a4a4a;
+    &:hover {
+        background-color: #00000014;
+    }
+}
+
+.dash {
+    height: 22px;
+    font-weight: 500;
+    border: 1px dashed #e3e3e3;
+    background-color: #fff;
+    &:hover {
+        border-style: solid;
+    }
+}
+
+.custom {
+    height: auto;
+    font-weight: 500;
+    box-shadow: 0rem -0.0625rem 0rem 0rem #b5b5b5 inset, 0rem 0rem 0rem 0.0625rem rgba(0, 0, 0, 0.1) inset,
+        0rem 0.03125rem 0rem 0.09375rem #fff inset;
+    background-color: #fff;
+}
+
+.error {
+    color: #8e0b21;
+    background-color: transparent;
+    &:hover {
+        background-color: #fee1e6;
+    }
+}
+
+.remove {
+    background-color: #c70a24;
+    color: #fff;
+    box-shadow: 0rem -0.0625rem 0rem 0.0625rem rgba(142, 31, 11, 0.8) inset,
+        0rem 0rem 0rem 0.0625rem rgba(181, 38, 11, 0.8) inset,
+        0rem 0.03125rem 0rem 0.09375rem rgba(255, 255, 255, 0.349) inset;
+
+    &:hover {
+        background-color: #a30a24;
+    }
+    &:active {
+        box-shadow: -0.0625rem 0rem 0.0625rem 0rem rgba(0, 0, 0, 0.2) inset,
+            0.0625rem 0rem 0.0625rem 0rem rgba(0, 0, 0, 0.2) inset, 0rem 0.125rem 0rem 0rem rgba(0, 0, 0, 0.6) inset;
+    }
+}
+
+.disabled {
+    background-color: #d4d4d4;
+    color: #fff;
+    pointer-events: none;
+}
+
+.underline {
+    color: var(--cold-color);
+    background-color: transparent;
+    box-shadow: none;
+    font-weight: 500;
+    font-size: var(--root-font-size);
+
+    &:active {
+        box-shadow: none;
+    }
+
+    &:hover {
+        color: #004299;
+        text-decoration: underline;
+    }
+}

@@ -1,0 +1,106 @@
+.form_control {
+    width: auto;
+}
+
+.label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.wrapper {
+    position: relative;
+
+    .box_questtion {
+        background-color: #fff;
+        padding: 12px;
+        border-radius: var(--root-radius);
+        box-shadow: var(--root-box-shadow);
+        min-width: 199px;
+        max-width: 100%;
+    }
+
+    .question {
+        position: absolute;
+        z-index: 503;
+        right: 4px;
+        top: calc(100% - 23px);
+    }
+}
+
+.input {
+    border: 1px solid var(--border-input);
+    border-radius: var(--root-radius);
+    background-color: #fff;
+    color: var(--root-color);
+    padding: 6px 12px;
+    height: 32px;
+    width: 100%;
+    text-align: left;
+
+    &:focus {
+        outline: 2px solid var(--cold-color);
+        border-color: var(--cold-color);
+    }
+
+    &:focus-within {
+        border-color: var(--cold-color);
+    }
+}
+
+.box {
+    position: relative;
+    svg {
+        position: absolute;
+        right: 6px;
+        font-size: 20px;
+        top: calc(100% - 26px);
+    }
+}
+
+.textarea {
+    width: 100%;
+    border-radius: var(--root-radius);
+    border: 1px solid var(--border-input);
+    color: var(--root-color);
+    padding: 6px 12px;
+    background-color: #fff;
+
+    &:focus {
+        outline: 2px solid var(--cold-color);
+    }
+}
+
+.selected_box {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 12px;
+    background-color: #fff;
+    height: 32px;
+    border-radius: var(--root-radius);
+    box-shadow: var(--root-box-shadow);
+    color: var(--foreground-rgb);
+
+    option {
+        color: var(--foreground-rgb);
+    }
+
+    &:focus {
+        outline: 2px solid var(--cold-color);
+        border-color: var(--cold-color);
+    }
+}
+
+.text_error {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+    color: #8e0b21;
+    column-gap: 6px;
+}
+
+.error {
+    background-color: #fee8eb;
+    border-color: #8e0b21;
+    outline-color: #8e0b21;
+}

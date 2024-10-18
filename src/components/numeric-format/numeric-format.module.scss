@@ -1,0 +1,20 @@
+.input {
+    position: relative;
+    border: 1px solid var(--border-input);
+    border-radius: var(--root-radius);
+    background-color: #fff;
+    color: var(--root-color);
+    padding: 6px 12px;
+    height: 32px;
+    width: 100%;
+    text-align: left;
+
+    &:focus {
+        outline: 2px solid var(--cold-color);
+        border-color: var(--cold-color);
+    }
+
+    &:focus-within {
+        border-color: var(--cold-color);
+    }
+}

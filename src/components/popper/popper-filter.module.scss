@@ -1,0 +1,61 @@
+.wrapper {
+    width: 185px;
+    min-height: 50px;
+    padding: 12px 12px 8px 12px;
+    background-color: #fff;
+    box-shadow: var(--root-box-shadow);
+    border-radius: var(--root-radius);
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wrapper_label {
+    display: flex;
+    column-gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    &:active .checkbox {
+        border-width: 3px;
+    }
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 3px;
+    border: 1px solid var(--children-color);
+    transition: border ease-in 0.1s;
+
+    svg {
+        color: #fff;
+    }
+}
+
+.active {
+    background-color: #000;
+    color: #fff;
+}
+
+.button {
+    color: #b5b5b5;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    width: 28px;
+    height: 20px;
+    background-color: transparent;
+    pointer-events: none;
+}
+
+.non_disabled {
+    &:hover {
+        text-decoration: underline;
+        color: var(--cold-color);
+        pointer-events: visible;
+    }
+}

@@ -1,0 +1,31 @@
+.layout {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+}
+
+.wrapper {
+    width: 476px;
+    max-width: 100%;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 40px 40px;
+    border-radius: var(--root-radius);
+
+    p {
+        margin-top: 12px;
+    }
+}
+
+.heading {
+    text-align: center;
+    margin: 12px 0;
+}
+
+.form {
+    & > * + * {
+        margin-top: 12px;
+    }
+}

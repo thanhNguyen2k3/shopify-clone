@@ -1,0 +1,91 @@
+.wrapper_search {
+    display: flex;
+    align-items: center;
+    column-gap: 4px;
+    height: 28px;
+    box-shadow: var(--root-box-shadow);
+    border-radius: var(--root-radius);
+    padding: 4px;
+    cursor: pointer;
+
+    &:active {
+        background-color: #f7f7f7;
+
+        box-shadow: -0.0625rem 0rem 0.0625rem 0rem rgba(26, 26, 26, 0.122) inset,
+            0.0625rem 0rem 0.0625rem 0rem rgba(26, 26, 26, 0.122) inset,
+            0rem 0.125rem 0.0625rem 0rem rgba(26, 26, 26, 0.2) inset;
+    }
+}
+
+.wrapper_action {
+    background-color: #fff;
+    position: absolute;
+    z-index: 1;
+    right: 8px;
+    top: 8px;
+    display: flex;
+    column-gap: 6px;
+}
+
+.wrapper_arrange {
+    min-width: 160px;
+    padding: 8px 12px;
+    background-color: #fff;
+    z-index: 498;
+    box-shadow: var(--root-box-shadow);
+    border-radius: var(--root-radius);
+
+    h1 {
+        font-size: var(--root-font-size);
+        font-weight: 500;
+        padding-bottom: 4px;
+    }
+}
+
+.arrange_list {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+
+    li {
+        display: flex;
+        white-space: nowrap;
+        cursor: pointer;
+        &:active .label_checkbox {
+            border-width: 2px;
+            border-color: #000;
+        }
+    }
+}
+
+.label {
+    display: flex;
+    column-gap: 8px;
+    align-items: center;
+    padding: 6px;
+
+    .label_checkbox {
+        width: 16px;
+        height: 16px;
+        border: 1px solid #8a8a8a;
+        border-radius: 9999px;
+    }
+
+    .label_icon {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.active {
+    border-width: 4px !important;
+    border-color: #000 !important;
+}
+
+.selected {
+    background-color: #ebebeb;
+    border-radius: var(--root-radius);
+}
