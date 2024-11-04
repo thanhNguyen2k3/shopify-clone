@@ -1,61 +1,3 @@
-.wrapper {
-    border-radius: var(--root-radius);
-    width: 100%;
-    max-width: 100%;
-    box-shadow: 0.0625rem 0rem 0rem 0rem rgba(0, 0, 0, 0.13) inset, -0.0625rem 0rem 0rem 0rem rgba(0, 0, 0, 0.13) inset,
-        0rem -0.0625rem 0rem 0rem rgba(0, 0, 0, 0.17) inset, 0rem 0.0625rem 0rem 0rem rgba(204, 204, 204, 0.5) inset;
-    background-color: #fff;
-}
-
-.wrapper_header {
-    position: relative;
-    min-height: 44px;
-    display: flex;
-    flex-direction: column-reverse;
-    justify-content: center;
-}
-
-.buttons {
-    overflow-x: auto;
-
-    &::-webkit-scrollbar {
-        display: none;
-    }
-}
-
-.wrapper_button {
-    padding: 8px;
-    width: 150%;
-}
-
-.wrapper_action {
-    width: 100%;
-}
-
-.checkbox {
-    width: 16px;
-    height: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 3px;
-    border: 1px solid var(--children-color);
-    transition: border ease-in 0.1s;
-
-    svg {
-        color: #fff;
-    }
-
-    &:active {
-        border-width: 3px;
-    }
-}
-
-.active {
-    background-color: #000;
-    color: #fff;
-}
-
 // Table
 
 .box {
@@ -172,20 +114,4 @@
     display: flex;
     align-items: center;
     column-gap: 8px;
-}
-
-// Action Box
-
-.box_action {
-    min-width: 193px;
-    background-color: #fff;
-    box-shadow: var(--root-box-shadow);
-    border-radius: var(--root-radius);
-    padding: 6px 6px;
-}
-
-.paginate_wrapper {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
 }

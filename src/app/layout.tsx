@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { ToastContainer } from 'react-toastify';
+
 import './globals.css';
 import 'tippy.js/dist/tippy.css'; // optional
 import 'react-quill/dist/quill.snow.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import 'react-toastify/dist/ReactToastify.css';
 import ClientContext from '@/context/client-context';
 
 const inter = Inter({ subsets: ['latin', 'vietnamese'], weight: ['100', '200', '300', '400', '500', '600', '700'] });
@@ -22,7 +25,11 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={inter.className} style={{ backgroundColor: '#ececec' }}>
-                <ClientContext>{children}</ClientContext>
+                <ClientContext>
+                    <ToastContainer theme="dark" />
+
+                    {children}
+                </ClientContext>
             </body>
         </html>
     );

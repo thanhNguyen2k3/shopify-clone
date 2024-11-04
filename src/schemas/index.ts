@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { PAYMETHOD } from '@prisma/client';
 
 export const loginSchema = z.object({
     email: z
@@ -22,4 +23,9 @@ export const registerSchema = z.object({
         })
         .trim(),
     password: z.string({ message: 'Mật khẩu là bắt buộc' }).min(3, { message: 'Tối thiểu 3 kí tự' }).trim(),
+});
+
+export const orderSchema = z.object({
+    pay_method: z.enum([PAYMETHOD.PAY_ONLINE, PAYMETHOD.CASH_ON_DELIVERY]),
+    contact_information_id: z.string().min(1, { message: 'Thông tin là bắt buộc' }).trim(),
 });

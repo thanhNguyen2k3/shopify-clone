@@ -1,0 +1,105 @@
+.wrapper_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #4a4a4a;
+}
+
+.select_option {
+    background-color: #fff;
+    outline: none;
+    color: #4a4a4a;
+    border: none;
+    box-shadow: 0rem -0.0625rem 0rem 0rem #b5b5b5 inset, 0rem 0rem 0rem 0.0625rem rgba(0, 0, 0, 0.1) inset,
+        0rem 0.03125rem 0rem 0.09375rem #fff inset;
+    padding: 3px 9px;
+    border-radius: 8px;
+}
+
+.wrapper_new_form {
+    display: flex;
+    flex-wrap: wrap;
+    grid-template-columns: 622px 312px;
+    max-width: 100%;
+    gap: 16px;
+}
+
+.wrapper_form {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    max-width: 100%;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    padding: 16px;
+    background-color: #fff;
+    border-radius: var(--root-radius);
+    box-shadow: var(--root-box-shadow);
+    border: var(--root-border-table);
+
+    h2 {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+
+        justify-content: space-between;
+        span {
+            &:nth-child(2) {
+                cursor: pointer;
+                color: var(--cold-color);
+                font-size: 11px;
+                font-weight: 500;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+
+            svg {
+                margin-left: 4px;
+            }
+        }
+    }
+
+    h3 {
+        font-size: var(--root-font-size);
+        padding-bottom: 12px;
+    }
+    h4 {
+        font-weight: 500;
+    }
+
+    .form_between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+}
+
+// Payment
+
+.payment_wrapper {
+    .order {
+        margin-top: 12px;
+        h3 {
+            text-decoration: underline;
+        }
+
+        .order_inform {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+
+            span {
+                &:nth-child(1) {
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+}

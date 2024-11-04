@@ -5,8 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "linux-musl"]
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -50,16 +51,19 @@ enum ROLE {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  username      String?
-  password      String?
-  role          ROLE      @default(MEMBER)
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+  id                   String               @id @default(cuid())
+  name                 String?
+  username             String?
+  password             String?
+  role                 ROLE                 @default(MEMBER)
+  email                String?              @unique
+  emailVerified        DateTime?            @map("email_verified")
+  image                String?
+  accounts             Account[]
+  sessions             Session[]
+  reviews              Reviews[]
+  orders               Order[]
+  contact_informations ContactInformation[]
 
   @@map("users")
 }
@@ -105,25 +109,28 @@ model Product {
   supplies          String?
   tags              String[] @default([])
 
-  form_combines FormCombine[]
-  images        ImagesForProducts[]
-  variants      Variant[]
+  form_combines      FormCombine[]
+  images             ImagesForProducts[]
+  variants           Variant[]
+  reviews            Reviews[]
+  orders             Order[]
+  product_for_orders VariantProductForOrder[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model ImagesForProducts {
-  id String @id @default(cuid())
-
-  product_id String?
+  product_id String
   product    Product? @relation(fields: [product_id], references: [id])
 
-  image_id String?
-  image    Image?  @relation(fields: [image_id], references: [id])
+  image_id String
+  image    Image? @relation(fields: [image_id], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@id([product_id, image_id])
 }
 
 model FormCombine {
@@ -147,6 +154,8 @@ model Variant {
   price        String?
   available    String?
 
+  order_for_product_variant VariantProductForOrder[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -156,5 +165,114 @@ model Category {
   image_id String?
   image    Image?    @relation(fields: [image_id], references: [id])
   title    String
+  activate String?   @default("active")
   products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reviews {
+  id         String  @id @default(cuid())
+  points     Float   @default(5)
+  user_id    String
+  user       User    @relation(fields: [user_id], references: [id])
+  product_id String
+  product    Product @relation(fields: [product_id], references: [id])
+  text       String?
+
+  order_id String
+  order    Order  @relation(fields: [order_id], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PAYMETHOD {
+  CASH_ON_DELIVERY
+  PAY_ONLINE
+}
+
+enum ORDER_STATUS {
+  AWAITING
+  CONFIRMED
+  SHIPPING
+  SHIPPED
+  NEED_EVALUATION
+  CANCELLED
+  RETURN
+}
+
+model Order {
+  id String @id @default(cuid())
+
+  user_id String
+
+  user     User      @relation(fields: [user_id], references: [id])
+  products Product[]
+
+  pay_method             PAYMETHOD
+  contact_information_id String
+  contact_information    ContactInformation @relation(fields: [contact_information_id], references: [id])
+  status                 ORDER_STATUS       @default(AWAITING)
+
+  product_variant_for_order VariantProductForOrder[]
+
+  gift_card_id String?
+  gift_card    GiftCard? @relation(fields: [gift_card_id], references: [id])
+
+  total   Float
+  reviews Reviews[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VariantProductForOrder {
+  id String @id @default(cuid())
+
+  variant_id String?
+  order_id   String
+  product_id String?
+
+  quantity Int @default(0)
+
+  variant Variant? @relation(fields: [variant_id], references: [id])
+  order   Order    @relation(fields: [order_id], references: [id])
+  product Product? @relation(fields: [product_id], references: [id])
+}
+
+model ContactInformation {
+  id String @id @default(cuid())
+
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
+
+  phone_number String
+  address      String
+  name         String
+  default      Boolean @default(false)
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TYPEGIFTCARD {
+  FREESHIP_CODE
+  DISCOUNT_CODE
+}
+
+model GiftCard {
+  id String @id @default(cuid())
+
+  gift_card_code String
+  type           TYPEGIFTCARD
+  reduce_costs   Int
+  expire_on      DateTime
+  orders         Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

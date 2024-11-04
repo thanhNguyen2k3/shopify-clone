@@ -9,7 +9,7 @@ import { db } from './lib/db';
 export default {
     trustHost: true,
     adapter: PrismaAdapter(db),
-    session: { strategy: 'jwt' },
+    session: { strategy: 'jwt', maxAge: 12 * 60 * 60 },
     providers: [
         Credentials({
             async authorize(credentials) {

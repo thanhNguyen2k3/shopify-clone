@@ -3,7 +3,7 @@ import styles from './heading.module.scss';
 import BadgeCustom from '../badge/badge';
 
 type Props = {
-    title: string;
+    title: string | ReactNode;
     button?: ReactNode;
     status?: string;
     titleStatus?: string;

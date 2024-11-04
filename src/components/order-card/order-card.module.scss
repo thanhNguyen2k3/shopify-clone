@@ -1,0 +1,21 @@
+.payment_wrapper {
+    padding: 12px;
+    .order {
+        margin-top: 12px;
+        h3 {
+            text-decoration: underline;
+        }
+
+        .order_inform {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+
+            span {
+                &:nth-child(1) {
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+}

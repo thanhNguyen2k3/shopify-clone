@@ -30,6 +30,7 @@ export const GET = async (req: NextRequest) => {
                 variants: {
                     include: {
                         image: true,
+                        product: true,
                     },
                 },
                 form_combines: true,
@@ -41,6 +42,11 @@ export const GET = async (req: NextRequest) => {
                         title: {
                             contains: searchQuery.replace(/(\w)\s+(\w)/g, '$1 <-> $2'),
                             mode: 'insensitive',
+                        },
+                    },
+                    {
+                        tags: {
+                            has: searchQuery,
                         },
                     },
                 ],
@@ -77,110 +83,114 @@ export const GET = async (req: NextRequest) => {
 };
 
 export const POST = async (req: NextRequest) => {
-    const body = await req.json();
+    try {
+        const body = await req.json();
 
-    const {
-        title,
-        description,
-        category_id,
-        price,
-        core,
-        quantity_tracking,
-        continue_selling,
-        inventory,
-        region_of_origin,
-        activate,
-        product_type,
-        supplies,
-        tags,
-        image_ids,
-        variants,
-        form_combines,
-    } = body;
-
-    const validatedFields = productSchema.safeParse({
-        title,
-        category_id,
-    });
-
-    if (!validatedFields.success) {
-        return NextResponse.json(
-            {
-                errors: validatedFields.error.flatten().fieldErrors,
-            },
-            { status: 400 },
-        );
-    }
-
-    const data = await db.product.create({
-        data: {
+        const {
             title,
             description,
-            inventory,
-            product_type,
-            quantity_tracking,
-            region_of_origin,
-            tags,
-            activate,
-            category: {
-                connect: {
-                    id: category_id,
-                },
-            },
-            continue_selling,
+            category_id,
             price,
             core,
+            quantity_tracking,
+            continue_selling,
+            inventory,
+            region_of_origin,
+            activate,
+            product_type,
             supplies,
-        },
-    });
+            tags,
+            image_ids,
+            variants,
+            form_combines,
+        } = body;
 
-    if (image_ids?.length < 3) {
+        const validatedFields = productSchema.safeParse({
+            title,
+            category_id,
+        });
+
+        if (!validatedFields.success) {
+            return NextResponse.json(
+                {
+                    errors: validatedFields.error.flatten().fieldErrors,
+                },
+                { status: 400 },
+            );
+        }
+
+        if (image_ids?.length < 3) {
+            return NextResponse.json(
+                {
+                    message: 'Vui lòng thêm ít nhất 3 ảnh',
+                },
+                { status: 400 },
+            );
+        }
+
+        const data = await db.product.create({
+            data: {
+                title,
+                description,
+                inventory,
+                product_type,
+                quantity_tracking,
+                region_of_origin,
+                tags,
+                activate,
+                category: {
+                    connect: {
+                        id: category_id,
+                    },
+                },
+                continue_selling,
+                price,
+                core,
+                supplies,
+            },
+        });
+
+        if (image_ids) {
+            await db.imagesForProducts.createMany({
+                data: image_ids.map((item: any) => ({
+                    image_id: item.id,
+                    product_id: data.id,
+                })),
+            });
+        }
+
+        if (form_combines) {
+            await db.formCombine.createMany({
+                data: form_combines.map((form: any) => ({
+                    date_id: form.date_id,
+                    title: form.title,
+                    values: form.values,
+                    isDone: form.isDone,
+                    product_id: data.id,
+                })),
+            });
+        }
+
+        if (variants?.length > 0) {
+            await db.variant.createMany({
+                data: variants.map((variant: any) => ({
+                    image_id: variant.image.id,
+                    combinations: variant.combinations,
+                    price: variant.price,
+                    available: variant.available,
+                    product_id: data.id,
+                })),
+            });
+        }
+
         return NextResponse.json(
             {
-                message: 'Vui lòng thêm ít nhất 3 ảnh',
+                message: 'Tạo sản phẩm thành công',
+                data,
             },
-            { status: 400 },
+            { status: 200 },
         );
+    } catch (error) {
+        return NextResponse.json(error);
     }
-
-    if (image_ids) {
-        await db.imagesForProducts.createMany({
-            data: image_ids.map((item: any) => ({
-                image_id: item.id,
-                product_id: data.id,
-            })),
-        });
-    }
-
-    if (form_combines) {
-        await db.formCombine.createMany({
-            data: form_combines.map((form: any) => ({
-                date_id: form.date_id,
-                title: form.title,
-                values: form.values,
-                isDone: form.isDone,
-                product_id: data.id,
-            })),
-        });
-    }
-
-    if (variants) {
-        await db.variant.createMany({
-            data: variants.map((variant: any) => ({
-                image_id: variant.image.id,
-                combinations: variant.combinations,
-                price: variant.price,
-                available: variant.available,
-                product_id: data.id,
-            })),
-        });
-    }
-
-    return NextResponse.json(
-        {
-            message: 'Tạo sản phẩm thành công',
-            data,
-        },
-        { status: 200 },
-    );
 };

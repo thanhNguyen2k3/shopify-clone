@@ -1,27 +1,27 @@
 'use client';
-
+import { IoIosMore } from 'react-icons/io';
+import Stack from '@mui/material/Stack';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useRef, useState } from 'react';
 import { MdOutlineInventory2 } from 'react-icons/md';
 import { TfiTrash } from 'react-icons/tfi';
-import { IoIosMore } from 'react-icons/io';
-import { useCallback, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { IoEyeOutline } from 'react-icons/io5';
 import Pagination from '@mui/material/Pagination';
-import Image from 'next/image';
-import Link from 'next/link';
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import Stack from '@mui/material/Stack';
+import { useReactToPrint } from 'react-to-print';
+import { ORDER_STATUS } from '@prisma/client';
 
 import Button from '@/components/button/button';
-import styles from '@/app/css/table.module.scss';
-import Search from '@/components/search/search';
-import TippyCustom from '@/tippy/tippy-custom';
-import Modal from '@/components/modal/modal';
+import styles from '../../css/table.module.scss';
+import styleOrder from './purchase_orders.module.scss';
+import { ExtandOrder } from '@/types';
 import { restApi } from '@/configs/axios';
-import { ExtandDataProps } from '@/types';
-import BadgeCustom from '@/components/badge/badge';
 import { PER_PAGE } from '@/const';
+import BadgeCustom from '@/components/badge/badge';
+import Search from '@/components/search/search';
+import Modal from '@/components/modal/modal';
+import TippyCustom from '@/tippy/tippy-custom';
+import OrderCard from '@/components/order-card/order-card';
 
 function NoRowsOverlay() {
     return (
@@ -32,7 +32,7 @@ function NoRowsOverlay() {
     );
 }
 
-const ProductTable = () => {
+const PurchaseOrders = () => {
     // Query key
     const queryClient = useQueryClient();
 
@@ -45,7 +45,7 @@ const ProductTable = () => {
             variant: 'defaulted',
             icon: MdOutlineInventory2,
             children: {
-                title: 'Lưu trữ sản phẩm?',
+                title: 'Lưu trữ đơn hàng?',
                 body: 'Lưu trữ sản phẩm sẽ ẩn sản phẩm khỏi kênh bán hàng và trang quản trị Shopify. Bạn sẽ tìm thấy sản phẩm khi sử dụng bộ lọc trạng thái trong danh sách sản phẩm.',
                 footer: 'Lưu trữ sản phẩm',
                 variant: 'primary',
@@ -53,7 +53,7 @@ const ProductTable = () => {
         },
         {
             id: 'remove',
-            title: 'Xóa sản phẩm',
+            title: 'Xóa đơn hàng',
             variant: 'error',
             icon: TfiTrash,
             children: {
@@ -107,16 +107,14 @@ const ProductTable = () => {
     );
 
     const viewQuery = searchParams.get('view') ?? 'all';
-    const orderQuery = searchParams.get('orderby') ?? 'title';
-    const arrangeQuery = searchParams.get('arrange') ?? 'desc';
     const page = searchParams.get('page') ?? '1';
     const currentPage = parseInt(page, 10);
 
-    const { data: products, isLoading } = useQuery<{ data: ExtandDataProps[] }>({
-        queryKey: ['products', viewQuery, arrangeQuery, orderQuery, searchValue, page],
+    const { data: orders, isLoading } = useQuery<{ data: ExtandOrder[] }>({
+        queryKey: ['purchase_orders', viewQuery, searchValue, page],
         queryFn: async () => {
             const response = await restApi.get(
-                `/api/products?search=${searchValue}&view=${viewQuery}&orderby=${orderQuery}&arrange=${arrangeQuery}&page=${page}`,
+                `/api/purchase_orders?search=${searchValue}&view=${viewQuery}&page=${page}`,
             );
 
             const totalCount = response.data.count;
@@ -129,13 +127,13 @@ const ProductTable = () => {
         refetchOnMount: true,
     });
 
-    // update status value on product
+    // update status value on order
 
     const { mutate, isPending } = useMutation({
-        mutationFn: async (activate: string) => {
-            const response = await restApi.post(`/api/products/update-many`, {
+        mutationFn: async (orders_status: ORDER_STATUS) => {
+            const response = await restApi.post(`/api/purchase_orders/status`, {
                 ids: ids,
-                activate,
+                orders_status,
             });
 
             return response.data;
@@ -144,7 +142,7 @@ const ProductTable = () => {
             console.log('ERROR', error);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['products'] }).then(() => setIds([]));
+            queryClient.invalidateQueries({ queryKey: ['purchase_orders'] }).then(() => setIds([]));
         },
     });
 
@@ -152,79 +150,47 @@ const ProductTable = () => {
         router.push(`${pathname}?${createQueryString([{ name: 'page', value: pagesize.toString() }])}`);
     };
 
+    // Print payment
+
+    const contentRef = useRef<HTMLDivElement>(null);
+    const reactToPrintFn = useReactToPrint({ contentRef });
+
     // Table columns & rows
 
-    const columns: GridColDef<ExtandDataProps>[] = [
+    const columns: GridColDef<ExtandOrder>[] = [
         {
-            field: 'image',
-            headerName: '',
-            width: 60,
-            renderCell: ({ row }) => (
-                <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                    <Image unoptimized src={row.images![0].image?.url!} alt="thumbnail" width={40} height={40} />
-                </div>
-            ),
-            sortable: false,
-            filterable: false,
-        },
-        {
-            field: 'title',
-            headerName: 'Sản phẩm',
+            field: 'id',
+            headerName: 'Mã đơn',
             width: 220,
             renderCell: ({ row }) => (
-                <div className={styles.info}>
-                    <Link href={`/products/${row?.id}`}>{row?.title}</Link>
-                    <Link href={`/detail/${row?.id}`}>
-                        <IoEyeOutline href={`/detail/${row.id}`} />
-                    </Link>
-                </div>
+                <Button sx={{ padding: 0 }} activeType="link" variant="underline" href={`/purchase_orders/${row.id}`}>
+                    {row.id}
+                </Button>
             ),
         },
         {
-            field: 'activate',
-            headerName: 'Trạng thái',
-            width: 90,
-            renderCell: ({ row }) => <BadgeCustom status={row.activate!} title={row.activate!} />,
-            sortable: false,
-            filterable: false,
-        },
-        {
-            field: 'inventory',
-            headerName: 'Hàng trong kho',
-            width: 190,
-            filterable: false,
-            valueGetter: (value, row) => {
-                const inventory = row.variants
-                    ? row.variants.reduce((v, init) => {
-                          const total = Number(init?.available?.split(' ')[0]) + v + row.inventory!;
-
-                          return total;
-                      }, 0)
-                    : row.inventory;
-
-                return `Hiện còn ${inventory} trong kho`;
+            field: 'user',
+            headerName: 'Khách hàng',
+            width: 220,
+            valueGetter: (_value, row) => {
+                return row.contact_information.name;
             },
         },
         {
-            field: 'category',
-            headerName: 'Danh mục',
-            width: 130,
-            valueGetter: (value, row) => `${row.category?.title || 'Chưa cập nhật'}`,
+            field: 'status',
+            headerName: 'Trạng thái',
+            width: 120,
+            renderCell: ({ row }) => <BadgeCustom status={row.status!} title={row.status!} />,
+            sortable: false,
             filterable: false,
         },
         {
-            field: 'product_type',
-            headerName: 'Loại',
-            width: 90,
-            valueGetter: (value) => value || 'Chưa cập nhật',
+            field: 'total',
+            headerName: 'Tổng đơn hàng',
+            width: 190,
             filterable: false,
-        },
-        {
-            field: 'supplies',
-            headerName: 'Nhà cung cấp',
-            width: 130,
-            valueGetter: (value) => value || 'Chưa cập nhật',
-            filterable: false,
+
+            renderCell: ({ row }) => <span style={{ color: 'red' }}>{row?.total?.toLocaleString()}</span>,
         },
         {
             field: 'createdAt',
@@ -232,10 +198,25 @@ const ProductTable = () => {
             width: 220,
             valueGetter: (_value, row) => new Date(row?.createdAt)?.toLocaleDateString(),
         },
-    ];
+        {
+            field: 'action',
+            headerName: 'Hành động',
+            width: 120,
+            renderCell: ({ row }) => {
+                console.log(row);
 
-    // Date time picker
-    const [showDate, setShowDate] = useState(false);
+                return (
+                    <>
+                        <Button onClick={() => reactToPrintFn()} activeType="button" variant="underline">
+                            In hóa đơn
+                        </Button>
+
+                        {contentRef && <OrderCard ref={contentRef} data={row!} />}
+                    </>
+                );
+            },
+        },
+    ];
 
     return (
         <div>
@@ -331,22 +312,35 @@ const ProductTable = () => {
                             <Button sx={{ height: 24 }} activeType="button" variant="custom">
                                 Chỉnh sửa hàng loạt
                             </Button>
-                            <Button
-                                sx={{ height: 24 }}
-                                onClick={() => mutate('active')}
-                                activeType="button"
-                                variant={isPending ? 'disabled' : 'custom'}
+                            <select
+                                onChange={(e) => {
+                                    if (ids) mutate(e.target.value as ORDER_STATUS);
+                                }}
+                                defaultValue={ORDER_STATUS.AWAITING}
+                                className={styleOrder.select_option}
                             >
-                                Đặt thành đang hoạt động
-                            </Button>
-                            <Button
-                                sx={{ height: 24 }}
-                                onClick={() => mutate('inActive')}
-                                activeType="button"
-                                variant={isPending ? 'disabled' : 'custom'}
-                            >
-                                Đặt thành ngưng hoạt động
-                            </Button>
+                                <option style={{ backgroundColor: '#dddddd' }} value={ORDER_STATUS.AWAITING}>
+                                    {ORDER_STATUS.AWAITING}
+                                </option>
+                                <option style={{ backgroundColor: '#d5ebff' }} value={ORDER_STATUS.CONFIRMED}>
+                                    {ORDER_STATUS.CONFIRMED}
+                                </option>
+                                <option style={{ backgroundColor: '#58aeff' }} value={ORDER_STATUS.SHIPPING}>
+                                    {ORDER_STATUS.SHIPPING}
+                                </option>
+                                <option style={{ backgroundColor: '#44ff00' }} value={ORDER_STATUS.SHIPPED}>
+                                    {ORDER_STATUS.SHIPPED}
+                                </option>
+                                <option style={{ backgroundColor: '#d12aff' }} value={ORDER_STATUS.NEED_EVALUATION}>
+                                    {ORDER_STATUS.NEED_EVALUATION}
+                                </option>
+                                <option style={{ backgroundColor: '#fff700' }} value={ORDER_STATUS.RETURN}>
+                                    {ORDER_STATUS.RETURN}
+                                </option>
+                                <option style={{ backgroundColor: '#ff2200' }} value={ORDER_STATUS.CANCELLED}>
+                                    {ORDER_STATUS.CANCELLED}
+                                </option>
+                            </select>
                             <TippyCustom
                                 interactive
                                 trigger="click"
@@ -388,7 +382,7 @@ const ProductTable = () => {
                     <div className={styles.table_wrapper}>
                         <DataGrid
                             rowHeight={62}
-                            rows={products?.data!}
+                            rows={orders?.data!}
                             columns={columns}
                             hideFooterPagination
                             checkboxSelection
@@ -396,7 +390,7 @@ const ProductTable = () => {
                             onRowSelectionModelChange={(row) => {
                                 setIds(row as string[]);
                             }}
-                            loading={isLoading}
+                            loading={isLoading || isPending}
                             localeText={{
                                 toolbarDensity: 'Size',
                                 toolbarDensityLabel: 'Size',
@@ -424,7 +418,7 @@ const ProductTable = () => {
                 {/* Pagination */}
             </div>
             <div className={styles.paginate_wrapper}>
-                {products?.data?.length! > 0 && (
+                {orders?.data?.length! > 0 && (
                     <Pagination
                         onChange={onChange}
                         count={count!}
@@ -438,4 +432,4 @@ const ProductTable = () => {
     );
 };
 
-export default ProductTable;
+export default PurchaseOrders;

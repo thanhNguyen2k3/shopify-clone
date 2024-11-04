@@ -22,9 +22,9 @@ import { Category, Image } from '@prisma/client';
 import Heading from '@/components/haeding/heading';
 import BackButton from '@/components/back-button/back-button';
 import { useRouter } from 'next/navigation';
-import { AxiosError } from 'axios';
 import { PickUpFormCombines } from '@/types';
 import ToastMessage from '@/components/animation/toast-message/toast-message';
+import { createProduct } from '@/actions/product';
 
 type Props = {};
 
@@ -64,8 +64,6 @@ const NewProduct = ({}: Props) => {
     const [productType, setProductType] = useState<string>('');
     const [supplier, setSupplier] = useState<string>('');
     const [tags, setTags] = useState<string[]>([]);
-
-    const [invalidField, setInvalidField] = useState<string | null>(null);
     //
 
     const handleChange = (value: string, dispatch: Dispatch<SetStateAction<string>>) => {
@@ -124,42 +122,22 @@ const NewProduct = ({}: Props) => {
         },
     });
 
-    const { mutate, isPending, error } = useMutation({
+    const { mutate, isPending, data } = useMutation({
         mutationFn: async (data: any) => {
-            const response = await restApi.post('/api/products', {
-                ...data,
-            });
+            const response = await createProduct(data);
 
-            return response.data;
-        },
-        onError: (erorr) => {
-            if (variantValues) {
-                variantValues?.forEach((value: any) => {
-                    if (value.image === null) {
-                        setInvalidField('Vui lòng hoàn thành các biến thể sản phẩm');
-                    }
-                });
-            }
-
-            if (imagesForOnes.length < 3) {
-                setInvalidField('Vui lòng thêm ít nhất 3 ảnh');
-            }
-
-            console.log('Erorr', erorr);
-        },
-        onSuccess: (data) => {
-            return router.replace(`/products/${data.data.id}`);
+            return response;
         },
     });
 
     const onSubmit = (e: FormEvent) => {
-        e.preventDefault();
-
-        if (invalidField) {
-            return;
+        if (data?.error) {
+            window.scrollTo({ top: 0 });
         }
 
-        const data = {
+        e.preventDefault();
+
+        const dataRequest = {
             title,
             description: description || null,
             category_id: categoryValue,
@@ -178,12 +156,18 @@ const NewProduct = ({}: Props) => {
             inventory,
         };
 
-        mutate(data);
+        mutate(dataRequest);
     };
+
+    useEffect(() => {
+        if (data?.success) {
+            return router.replace(`/products/${data.product.id}`);
+        }
+    }, [data?.success, data?.product, router]);
 
     return (
         <Fragment>
-            {invalidField && <ToastMessage isStatus={'error'} message={invalidField!} />}
+            {data?.error && <ToastMessage isStatus={'error'} message={data?.error!.toString()} />}
             <Heading title="Thêm sản phẩm" button={<BackButton />} />
             <form onSubmit={onSubmit}>
                 <div className={styles.wrapper_new_form}>
@@ -196,9 +180,7 @@ const NewProduct = ({}: Props) => {
                                 name="title"
                                 id="title"
                                 placeholder="Áo thun ngắn tay"
-                                errorMessage={
-                                    error && (error as AxiosError<{ errors: any }>).response?.data?.errors?.title
-                                }
+                                errorMessage={(data?.error as any)?.title}
                             />
                             <FormControl editor label="Mô tả" name="description" id="description">
                                 <TextEditor state={description} dispatch={setDescription} />
@@ -214,9 +196,7 @@ const NewProduct = ({}: Props) => {
                                 label="Danh mục"
                                 name="category"
                                 id="category"
-                                errorMessage={
-                                    error && (error as AxiosError<{ errors: any }>).response?.data?.errors?.category_id
-                                }
+                                errorMessage={(data?.error as any)?.category_id}
                             >
                                 <option value={''}>-- Lựa chọn --</option>
                                 {categoryData &&
@@ -358,7 +338,7 @@ const NewProduct = ({}: Props) => {
                                         );
                                     })}
 
-                                <div className={styles.location}>Tổng hàng trong kho tại Shop location: 0 có sẵn</div>
+                                {/* <div className={styles.location}>Tổng hàng trong kho tại Shop location: 0 có sẵn</div> */}
                             </div>
                         </div>
                     </div>

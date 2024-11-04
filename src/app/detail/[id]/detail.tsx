@@ -7,6 +7,7 @@ import { RiSubtractLine, RiAddLargeLine } from 'react-icons/ri';
 import { MdOutlineZoomOutMap } from 'react-icons/md';
 import { BsCart2 } from 'react-icons/bs';
 import Slider from 'react-slick';
+import { toast } from 'react-toastify';
 
 import styles from './detail.module.scss';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -14,8 +15,18 @@ import Button from '@/components/button/button';
 import { ExtandDataProps, ExtandVariant } from '@/types';
 import ExtandMethod from '@/components/extand-method/extand-method';
 import TranportForm from '@/components/tranport-form/tranport-form';
+import styled from 'styled-components';
+import { useBearStore } from '@/zustan/config';
 
 type Props = { data: ExtandDataProps };
+
+const StyleSlider = styled(Slider)`
+    .slick-slide {
+        div {
+            height: 80px;
+        }
+    }
+`;
 
 const Detail = ({ data }: Props) => {
     // Filter Data
@@ -88,7 +99,7 @@ const Detail = ({ data }: Props) => {
     const [origin, setOrigin] = useState({ x: 0, y: 0 });
 
     // Detail state
-    const [quantity, setQuantity] = useState<number>(0);
+    const [quantity, setQuantity] = useState<number>(1);
 
     // Handle detail state
 
@@ -99,8 +110,10 @@ const Detail = ({ data }: Props) => {
             }
 
             if (type === 'sub') {
-                if (quantity === 0) {
-                    return;
+                if (quantity <= 1) {
+                    return toast(`Tối thiểu 1 trên mỗi đơn hàng`, {
+                        position: 'top-right',
+                    });
                 }
 
                 setQuantity(quantity - 1);
@@ -151,231 +164,334 @@ const Detail = ({ data }: Props) => {
 
     // Use Query
 
-    return (
-        <div
-            className={styles.wrapper}
-            style={breakpoints <= 1 ? { display: 'block' } : { display: 'flex', flexWrap: 'wrap' }}
-        >
-            <div className={styles.wrapper_images}>
-                <div className={styles.box_images}>
-                    {/* Responsive */}
+    // Zustand bear build cart
 
-                    <Fragment>
-                        <div style={{ position: 'relative' }}>
-                            <Slider
-                                initialSlide={sliderIndex}
-                                dots={false}
+    const { addToCart, items, clearCart } = useBearStore((state) => state);
+
+    const addToCartForZustand = useCallback(() => {
+        if (product.variants?.length! > 0) {
+            if (!selectedVariant) {
+                return toast(`Vui lòng hoàn tất lựa chọn của bạn`, {
+                    position: 'top-center',
+                });
+            } else {
+                toast(`Đã thêm vào giỏ hàng`, {
+                    position: 'top-center',
+                });
+                return addToCart(
+                    { ...selectedVariant, variant_id: selectedVariant.id, product_id: selectedVariant.product_id },
+                    quantity,
+                );
+            }
+        } else {
+            toast(`Đã thêm vào giỏ hàng`, {
+                position: 'top-center',
+            });
+            return addToCart({ ...product, product_id: product.id }, quantity);
+        }
+    }, [addToCart, quantity, selectedVariant, product]);
+
+    console.log(items);
+
+    return (
+        <div>
+            <div
+                style={{
+                    position: 'fixed',
+                    right: 10,
+                    bottom: 10,
+                    width: 60,
+                    height: 60,
+                    borderRadius: '999px',
+                    backgroundColor: 'ThreeDShadow',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <Button onClick={clearCart} activeType="button" variant="remove" sx={{ color: '#fff' }}>
+                    <BsCart2 />
+                </Button>
+            </div>
+
+            <div
+                className={styles.wrapper}
+                style={
+                    breakpoints <= 1
+                        ? { display: 'block' }
+                        : {
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              alignItems: 'flex-start',
+                              borderBottom: '10px solid #f1f1f1',
+                          }
+                }
+            >
+                <div className={styles.wrapper_images}>
+                    <div className={styles.box_images}>
+                        {/* Responsive */}
+
+                        <Fragment>
+                            <div style={{ position: 'relative' }}>
+                                <Slider
+                                    initialSlide={sliderIndex}
+                                    dots={false}
+                                    arrows={false}
+                                    asNavFor={nav2}
+                                    ref={(slider) => setNav1(slider)}
+                                    afterChange={(current: number) => setSliderIndex(current)}
+                                >
+                                    {images?.map((item, index) => (
+                                        <div style={{ minWidth: '100%' }} key={index}>
+                                            <Image
+                                                style={{ objectFit: 'cover', maxWidth: '450px', width: '100%' }}
+                                                src={item?.image?.url!}
+                                                width={450}
+                                                height={450}
+                                                alt="img"
+                                                unoptimized
+                                            />
+                                        </div>
+                                    ))}
+                                </Slider>
+                                <div className={styles.show_modal_button} onClick={() => setModal(true)}>
+                                    <div className={styles.button}>
+                                        <MdOutlineZoomOutMap fontSize={20} />
+                                    </div>
+                                    <span>Nhấp để phóng to</span>
+                                </div>
+                            </div>
+
+                            <StyleSlider
+                                asNavFor={nav1}
                                 arrows={false}
-                                asNavFor={nav2}
-                                ref={(slider) => setNav1(slider)}
-                                afterChange={(current: number) => setSliderIndex(current)}
+                                ref={(slider) => setNav2(slider)}
+                                slidesToShow={breakpoints === 0 ? 3 : product.images?.length! <= 3 ? 3 : 5}
+                                swipeToSlide={true}
+                                focusOnSelect={true}
+                                dots={false}
                             >
                                 {images?.map((item, index) => (
-                                    <div style={{ minWidth: '100%' }} key={index}>
+                                    <div key={index}>
                                         <Image
-                                            style={{ objectFit: 'cover', maxWidth: '450px', width: '100%' }}
-                                            src={item?.image?.url!}
-                                            width={450}
-                                            height={450}
+                                            style={{
+                                                objectFit: 'cover',
+                                                width: '100%',
+                                                height: '100%',
+                                                maxHeight: '80px',
+                                                minHeight: '80px',
+                                            }}
+                                            src={item.image.url}
+                                            width={90}
+                                            height={90}
                                             alt="img"
                                             unoptimized
                                         />
                                     </div>
                                 ))}
-                            </Slider>
-                            <div className={styles.show_modal_button} onClick={() => setModal(true)}>
-                                <div className={styles.button}>
-                                    <MdOutlineZoomOutMap fontSize={20} />
-                                </div>
-                                <span>Nhấp để phóng to</span>
-                            </div>
-                        </div>
+                            </StyleSlider>
+                        </Fragment>
+                    </div>
+                </div>
 
-                        <Slider
-                            asNavFor={nav1}
-                            arrows={false}
-                            ref={(slider) => setNav2(slider)}
-                            slidesToShow={breakpoints === 0 ? 3 : 5}
-                            swipeToSlide={true}
-                            focusOnSelect={true}
-                            dots={false}
+                {/* Content */}
+                <div
+                    className={styles.content}
+                    style={{ borderLeft: '10px solid #f1f1f1', borderRight: '10px solid #f1f1f1' }}
+                >
+                    <div className={styles.wrapper_block}>
+                        <h1 style={breakpoints < 1 ? { fontSize: '24px' } : {}}>{product?.title}</h1>
+
+                        <>
+                            {selectedVariant ? (
+                                <div className={styles.price}>
+                                    <span className={styles.cost}>{selectedVariant.price}</span>
+                                </div>
+                            ) : (
+                                <div className={styles.price}>
+                                    {product?.price && product?.core ? (
+                                        <>
+                                            <span className={styles.sale}>{product.core}</span>
+                                            <span className={styles.cost}>{product.price}</span>
+                                            <span className={styles.percent}>Giảm {sale}%</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className={styles.cost}>{product?.core}</span>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    </div>
+
+                    <div className={styles.wrapper_block}>
+                        <ExtandMethod
+                            title="Vận chuyển"
+                            heading="Lựa chọn địa chỉ vận chuyển"
+                            style={{ fontSize: 14, fontWeight: 600, color: '#000' }}
+                            extand
+                            body={<TranportForm />}
+                        />
+
+                        <div
+                            className={styles.inform_detail}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}
                         >
-                            {images?.map((item, index) => (
-                                <div key={index}>
-                                    <Image
-                                        style={{
-                                            objectFit: 'cover',
-                                            width: '100%',
-                                            height: '100%',
-                                            maxHeight: '80px',
-                                            minHeight: '80px',
-                                        }}
-                                        src={item.image.url}
-                                        width={90}
-                                        height={90}
-                                        alt="img"
-                                        unoptimized
-                                    />
+                            <Image unoptimized src={'/free-ship.png'} alt="free-ship" width={24} height={24} />
+                            <span>Miễn phí vận chuyển</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.wrapper_block}>
+                        {product?.form_combines &&
+                            product.form_combines.map((combine) => (
+                                <div key={combine.id} className={` ${styles.inform}`}>
+                                    <h4>{combine.title}</h4>
+                                    <div className={styles.radio_inputs}>
+                                        {combine.values.map((value) => (
+                                            <label key={value}>
+                                                <input
+                                                    className={styles.radio_input}
+                                                    type="radio"
+                                                    name={combine.title!}
+                                                    id={combine.title!}
+                                                    value={value}
+                                                    checked={selectedValues[combine.title!] === value}
+                                                    onChange={(e) =>
+                                                        handleChangeValueWithInput(e.target.value, e.target.name)
+                                                    }
+                                                />
+                                                <div className={styles.radio_title}>
+                                                    <span className={styles.radio_label}>{value}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             ))}
-                        </Slider>
-                    </Fragment>
-                </div>
-            </div>
 
-            {/* Content */}
-            <div className={styles.content}>
-                <div className={styles.wrapper_block}>
-                    <h1 style={breakpoints < 1 ? { fontSize: '24px' } : {}}>{product?.title}</h1>
-
-                    {product?.variants?.length! === 0 ? (
-                        <div className={styles.price}>
-                            {product?.price && product?.core ? (
-                                <>
-                                    <span className={styles.sale}>{product.core}</span>
-                                    <span className={styles.cost}>{product.price}</span>
-                                    <span className={styles.percent}>Giảm {sale}%</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span className={styles.cost}>{product?.core}</span>
-                                </>
-                            )}
-                        </div>
-                    ) : (
-                        <div className={styles.price}>
-                            <span className={styles.cost}>{product.price}</span>
-                        </div>
-                    )}
-                </div>
-
-                <div className={styles.wrapper_block}>
-                    <ExtandMethod
-                        title="Vận chuyển"
-                        heading="Lựa chọn địa chỉ vận chuyển"
-                        style={{ fontSize: 14, fontWeight: 600, color: '#000' }}
-                        extand
-                        body={<TranportForm />}
-                    />
-
-                    <div
-                        className={styles.inform_detail}
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}
-                    >
-                        <Image unoptimized src={'/free-ship.png'} alt="free-ship" width={24} height={24} />
-                        <span>Miễn phí vận chuyển</span>
-                    </div>
-                </div>
-
-                <div className={styles.wrapper_block}>
-                    {product?.form_combines &&
-                        product.form_combines.map((combine) => (
-                            <div key={combine.id} className={` ${styles.inform}`}>
-                                <h4>{combine.title}</h4>
-                                <div className={styles.radio_inputs}>
-                                    {combine.values.map((value) => (
-                                        <label key={value}>
-                                            <input
-                                                className={styles.radio_input}
-                                                type="radio"
-                                                name={combine.title!}
-                                                id={combine.title!}
-                                                value={value}
-                                                checked={selectedValues[combine.title!] === value}
-                                                onChange={(e) =>
-                                                    handleChangeValueWithInput(e.target.value, e.target.name)
-                                                }
-                                            />
-                                            <div className={styles.radio_title}>
-                                                <span className={styles.radio_label}>{value}</span>
-                                            </div>
-                                        </label>
-                                    ))}
+                        <div className={` ${styles.inform}`}>
+                            <h4>Số lượng</h4>
+                            <div>
+                                <div className={styles.quantity}>
+                                    <button onClick={() => handleCallBackQuantity('sub')}>
+                                        <RiSubtractLine />
+                                    </button>
+                                    <input
+                                        value={quantity}
+                                        onChange={(e) => {
+                                            Number(e.target.value) <= 1
+                                                ? setQuantity(1)
+                                                : setQuantity(Number(e.target.value));
+                                        }}
+                                        type="number"
+                                        min={1}
+                                    />
+                                    <button onClick={() => handleCallBackQuantity('add')}>
+                                        <RiAddLargeLine />
+                                    </button>
                                 </div>
-                            </div>
-                        ))}
 
-                    <div className={` ${styles.inform}`}>
-                        <h4>Số lượng</h4>
-                        <div>
-                            <div className={styles.quantity}>
-                                <button onClick={() => handleCallBackQuantity('sub')}>
-                                    <RiSubtractLine />
-                                </button>
-                                <input
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(Number(e.target.value))}
-                                    type="number"
-                                    min={0}
-                                />
-                                <button onClick={() => handleCallBackQuantity('add')}>
-                                    <RiAddLargeLine />
-                                </button>
+                                {selectedVariant && (
+                                    <span style={{ marginTop: '6px', display: 'block' }}>
+                                        {Number(selectedVariant.available?.split(' ')[0])} có sẵn
+                                    </span>
+                                )}
                             </div>
+                        </div>
 
-                            {selectedVariant && (
-                                <span style={{ marginTop: '6px', display: 'block' }}>
-                                    {Number(selectedVariant.available?.split(' ')[0])} có sẵn
-                                </span>
-                            )}
+                        <div
+                            className={styles.inform}
+                            style={
+                                breakpoints === 0
+                                    ? { position: 'fixed', bottom: 0, left: 0, right: 0, gap: 0, zIndex: 480 }
+                                    : { marginTop: '18px' }
+                            }
+                        >
+                            {breakpoints !== 0 && <h4></h4>}
+                            <Button
+                                sx={breakpoints === 0 ? { width: '50%', height: 60, borderRadius: 0 } : { height: 40 }}
+                                activeType="button"
+                                variant="secondary"
+                                icon={BsCart2}
+                                placement="left"
+                                onClick={addToCartForZustand}
+                            >
+                                Thêm vào giỏ hàng
+                            </Button>
+
+                            <Button
+                                sx={
+                                    breakpoints === 0
+                                        ? {
+                                              width: '50%',
+                                              height: 60,
+                                              borderRadius: 0,
+                                              backgroundColor: '#e22c38',
+                                              boxShadow: 'none',
+                                          }
+                                        : { height: 40, backgroundColor: '#e22c38', boxShadow: 'none' }
+                                }
+                                activeType="button"
+                                variant="primary"
+                            >
+                                Mua ngay
+                            </Button>
                         </div>
                     </div>
 
-                    <div
-                        className={styles.inform}
-                        style={
-                            breakpoints === 0
-                                ? { position: 'fixed', bottom: 0, left: 0, right: 0, gap: 0, zIndex: 480 }
-                                : { marginTop: '18px' }
-                        }
-                    >
-                        {breakpoints !== 0 && <h4></h4>}
-                        <Button
-                            sx={breakpoints === 0 ? { width: '50%', height: 60, borderRadius: 0 } : { height: 40 }}
-                            activeType="button"
-                            variant="secondary"
-                            icon={BsCart2}
-                            placement="left"
-                        >
-                            Thêm vào giỏ hàng
-                        </Button>
-
-                        <Button
-                            sx={
-                                breakpoints === 0
-                                    ? {
-                                          width: '50%',
-                                          height: 60,
-                                          borderRadius: 0,
-                                          backgroundColor: '#e22c38',
-                                          boxShadow: 'none',
-                                      }
-                                    : { height: 40, backgroundColor: '#e22c38', boxShadow: 'none' }
-                            }
-                            activeType="button"
-                            variant="primary"
-                        >
-                            Mua ngay
-                        </Button>
+                    <div className={styles.wrapper_block}>
+                        <div className={` ${styles.inform}`}>
+                            <ExtandMethod
+                                title="Hình thức thanh toán"
+                                style={{ fontSize: 14, fontWeight: 600, color: '#000' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                                    <Image src={'/cod.png'} alt="cod" width={24} height={24} />
+                                    <h4 style={{ maxWidth: '100%' }}>Thanh toán khi nhận hàng (COD)</h4>
+                                </div>
+                            </ExtandMethod>
+                        </div>
                     </div>
                 </div>
 
-                <div className={styles.wrapper_block}>
-                    <div className={` ${styles.inform}`}>
-                        <ExtandMethod
-                            title="Hình thức thanh toán"
-                            style={{ fontSize: 14, fontWeight: 600, color: '#000' }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
-                                <Image src={'/cod.png'} alt="cod" width={24} height={24} />
-                                <h4 style={{ maxWidth: '100%' }}>Thanh toán khi nhận hàng (COD)</h4>
-                            </div>
-                        </ExtandMethod>
+                {/* Modal content */}
+
+                {/* Modal show image */}
+
+                <div
+                    style={modal ? { transform: 'translateY(0%)' } : { transform: 'translateY(100%)' }}
+                    className={styles.modal_wrapper}
+                >
+                    <div
+                        className={styles.modal}
+                        style={modal ? { transform: 'translateY(0)' } : { transform: 'translateY(100%)' }}
+                        onClick={() => setModal(false)}
+                    >
+                        <button onClick={handlePreviousInModal}>
+                            <LiaAngleLeftSolid fontSize={16} />
+                        </button>
+                        <button onClick={handleNextInModal}>
+                            <LiaAngleRightSolid fontSize={16} />
+                        </button>
+
+                        <div className={styles.modal_item}>
+                            <Image
+                                unoptimized
+                                style={{ transformOrigin: `${origin.x}% ${origin.y}%` }}
+                                onClick={handleImageClick}
+                                src={imagesInModal?.[currentIndexInModal!]?.image?.url!}
+                                className={isZoomed ? styles.zoomed : ''}
+                                width={600}
+                                height={600}
+                                alt="image in modal"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div className={styles.wrapper_block}>
+            <div className={styles.wrapper_block} style={breakpoints < 1 ? { marginBottom: 60 } : {}}>
                 <h3>Giới thiệu về sản phẩm này</h3>
                 <div style={{ maxWidth: '900px', margin: '0 auto' }}>
                     <div
@@ -384,41 +500,6 @@ const Detail = ({ data }: Props) => {
                             __html: product?.description!,
                         }}
                     ></div>
-                </div>
-            </div>
-
-            {/* Modal content */}
-
-            {/* Modal show image */}
-
-            <div
-                style={modal ? { transform: 'translateY(0%)' } : { transform: 'translateY(100%)' }}
-                className={styles.modal_wrapper}
-            >
-                <div
-                    className={styles.modal}
-                    style={modal ? { transform: 'translateY(0)' } : { transform: 'translateY(100%)' }}
-                    onClick={() => setModal(false)}
-                >
-                    <button onClick={handlePreviousInModal}>
-                        <LiaAngleLeftSolid fontSize={16} />
-                    </button>
-                    <button onClick={handleNextInModal}>
-                        <LiaAngleRightSolid fontSize={16} />
-                    </button>
-
-                    <div className={styles.modal_item}>
-                        <Image
-                            unoptimized
-                            style={{ transformOrigin: `${origin.x}% ${origin.y}%` }}
-                            onClick={handleImageClick}
-                            src={imagesInModal?.[currentIndexInModal!]?.image?.url!}
-                            className={isZoomed ? styles.zoomed : ''}
-                            width={600}
-                            height={600}
-                            alt="image in modal"
-                        />
-                    </div>
                 </div>
             </div>
         </div>

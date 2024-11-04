@@ -18,3 +18,18 @@
     background-color: #d5ebff;
     color: #003a5a;
 }
+
+.cancelled {
+    background-color: var(--critical-color);
+    color: white;
+}
+
+.return {
+    background-color: #ffd900;
+    color: white;
+}
+
+.shipped {
+    background-color: #3cff00;
+    color: white;
+}

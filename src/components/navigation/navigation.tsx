@@ -3,6 +3,7 @@
 import { GoHomeFill } from 'react-icons/go';
 import { RiShoppingBagFill } from 'react-icons/ri';
 import { BsArrowReturnRight } from 'react-icons/bs';
+import { BiSolidCategory } from 'react-icons/bi';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { usePathname } from 'next/navigation';
 import { HTMLAttributes, useContext } from 'react';
@@ -44,6 +45,12 @@ const Navigation = ({ ref, ...props }: Props) => {
                     title: 'Thẻ tặng quà',
                 },
             ],
+        },
+        {
+            id: 'categories',
+            to: '/categories',
+            title: 'Danh mục',
+            icon: BiSolidCategory,
         },
         {
             id: 'settings',

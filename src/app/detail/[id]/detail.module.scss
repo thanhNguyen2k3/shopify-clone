@@ -1,5 +1,6 @@
 .wrapper {
-    padding-bottom: 26px;
+    background-color: #fff;
+
     .description {
         margin: 0 auto;
         flex: 1;
@@ -15,8 +16,11 @@
 .wrapper_block {
     background-color: #fff;
     padding: 12.4px 16px;
-    margin-bottom: 10px;
     width: 100%;
+
+    &:nth-child(2n-1) {
+        border-bottom: 10px solid #f1f1f1;
+    }
 }
 
 // Contents
@@ -255,8 +259,12 @@
 .wrapper_images {
     position: relative;
     height: max-content;
-    margin-bottom: 10px;
-    padding: 0 10px 6px 10px;
+
+    background-color: #fff;
+
+    &::after {
+        background-color: #000 !important;
+    }
 }
 
 .box_images {

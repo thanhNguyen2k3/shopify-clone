@@ -7,7 +7,6 @@ import { IoIosAddCircleOutline } from 'react-icons/io';
 import { CiWarning } from 'react-icons/ci';
 import Chip from '@mui/material/Chip';
 import { Image } from '@prisma/client';
-import { AxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 
 import styles from './new-product.module.scss';
@@ -18,14 +17,13 @@ import Button from '@/components/button/button';
 import VariantForm from '@/components/variant-form/variant-form';
 import VariantItem from '@/components/variant-form/variant-item';
 import NumericFormat from '@/components/numeric-format/numeric-format';
-import { useResponsive } from '@/hooks/useResponsive';
 import { provinces } from '@/const';
 import TextEditor from '@/components/text-editor/text-editor';
-import { restApi } from '@/configs/axios';
 import Heading from '@/components/haeding/heading';
 import BackButton from '@/components/back-button/back-button';
 import { ExtandCategory, ExtandDataProps, PickUpFormCombines } from '@/types';
 import ToastMessage from '@/components/animation/toast-message/toast-message';
+import { updateProduct } from '@/actions/product';
 
 type Props = {
     existingData?: ExtandDataProps | null;
@@ -53,7 +51,7 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
     // Query params data
 
     // Responsive
-    const breakpoints = useResponsive([430, 800, 1024]);
+    // const breakpoints = useResponsive([430, 800, 1024]);
 
     // State
 
@@ -75,7 +73,6 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
     const [forms, setForms] = useState<PickUpFormCombines[]>([]);
 
     // Invalid field
-    const [invalidField, setInvalidField] = useState<string | null>(null);
 
     // Update data effect
 
@@ -166,44 +163,22 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
         }
     }, [forms, existingData?.variants, existingData?.form_combines]);
 
-    const { mutate, isPending, error, isSuccess, isError } = useMutation({
+    const { mutate, isPending, data } = useMutation({
         mutationFn: async (data: any) => {
-            const response = await restApi.put(`/api/products/${existingData?.id}`, {
-                ...data,
-            });
+            const dataResponse = await updateProduct(existingData?.id!, data);
 
-            return response.data;
+            return dataResponse;
         },
         onError: (error) => {
             console.log('Error', error);
-
-            if (variantValues) {
-                variantValues?.forEach((value: any) => {
-                    if (value.image === null) {
-                        setInvalidField('Vui lòng hoàn thành các biến thể sản phẩm');
-                    }
-                });
-            }
-
-            if (imagesForOnes.length < 3) {
-                setInvalidField('Vui lòng thêm ít nhất 3 ảnh');
-            }
         },
         onSuccess: () => {
-            console.log('Success');
-            setTimeout(() => {
-                router.refresh();
-            }, 3000);
             queryClient.invalidateQueries({ queryKey: ['products'] });
         },
     });
 
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
-
-        if (invalidField) {
-            return;
-        }
 
         const data = {
             title,
@@ -241,8 +216,8 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
 
     return (
         <Fragment>
-            {isError && <ToastMessage isStatus="error" message="Lưu thay đổi thất bại" />}
-            {isSuccess && <ToastMessage isStatus="success" message="Lưu thay đổi thành công" />}
+            {data?.error && <ToastMessage isStatus="error" message={data.error.toString()} />}
+            {data?.success && <ToastMessage isStatus="success" message={data.success} />}
             <Heading
                 title={title}
                 status={existingData.activate!}
@@ -261,9 +236,7 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
                                 name="title"
                                 id="title"
                                 placeholder="Áo thun ngắn tay"
-                                errorMessage={
-                                    error && (error as AxiosError<{ errors: any }>).response?.data?.errors?.title
-                                }
+                                errorMessage={(data?.error as any)?.title}
                             />
                             <FormControl editor label="Mô tả" name="description" id="description">
                                 <TextEditor state={description} dispatch={setDescription} />
@@ -282,9 +255,7 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
                                 label="Danh mục"
                                 name="category"
                                 id="category"
-                                errorMessage={
-                                    error && (error as AxiosError<{ errors: any }>).response?.data?.errors?.category_id
-                                }
+                                errorMessage={(data?.error as any)?.category_id}
                             >
                                 <option value={''}>-- Lựa chọn --</option>
                                 {categories &&

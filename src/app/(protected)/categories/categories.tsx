@@ -1,12 +1,11 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { MdOutlineInventory2 } from 'react-icons/md';
+import { MdCheck, MdOutlineInventory2 } from 'react-icons/md';
 import { TfiTrash } from 'react-icons/tfi';
 import { IoIosMore } from 'react-icons/io';
 import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { IoEyeOutline } from 'react-icons/io5';
 import Pagination from '@mui/material/Pagination';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -19,9 +18,9 @@ import Search from '@/components/search/search';
 import TippyCustom from '@/tippy/tippy-custom';
 import Modal from '@/components/modal/modal';
 import { restApi } from '@/configs/axios';
-import { ExtandDataProps } from '@/types';
-import BadgeCustom from '@/components/badge/badge';
+import { ExtandCategory } from '@/types';
 import { PER_PAGE } from '@/const';
+import BadgeCustom from '@/components/badge/badge';
 
 function NoRowsOverlay() {
     return (
@@ -32,8 +31,9 @@ function NoRowsOverlay() {
     );
 }
 
-const ProductTable = () => {
-    // Query key
+const CategoriesTable = () => {
+    // Query
+
     const queryClient = useQueryClient();
 
     // data
@@ -67,6 +67,7 @@ const ProductTable = () => {
 
     // State
     const [ids, setIds] = useState<string[]>([]);
+    const [selectedAll, setSelectedAll] = useState<boolean>(false);
 
     // Search value
     const [searchValue, setSearchValue] = useState<string>('');
@@ -86,6 +87,27 @@ const ProductTable = () => {
     };
 
     // Handle
+    const isChecked = (value: string) => ids.includes(value);
+    const handleSelected = (id: string) => {
+        setIds((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((item) => item !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
+
+    const handleSelectedAll = () => {
+        const selectedIds = categories?.data?.map((item) => item?.id);
+        setSelectedAll(!selectedAll);
+
+        if (selectedAll) {
+            return setIds([]);
+        } else {
+            return setIds(selectedIds!);
+        }
+    };
 
     // Query Data
     const router = useRouter();
@@ -112,11 +134,11 @@ const ProductTable = () => {
     const page = searchParams.get('page') ?? '1';
     const currentPage = parseInt(page, 10);
 
-    const { data: products, isLoading } = useQuery<{ data: ExtandDataProps[] }>({
-        queryKey: ['products', viewQuery, arrangeQuery, orderQuery, searchValue, page],
+    const { data: categories, isLoading } = useQuery<{ data: ExtandCategory[] }>({
+        queryKey: ['categories', viewQuery, arrangeQuery, orderQuery, searchValue, page],
         queryFn: async () => {
             const response = await restApi.get(
-                `/api/products?search=${searchValue}&view=${viewQuery}&orderby=${orderQuery}&arrange=${arrangeQuery}&page=${page}`,
+                `/api/category?search=${searchValue}&view=${viewQuery}&orderby=${orderQuery}&arrange=${arrangeQuery}&page=${page}`,
             );
 
             const totalCount = response.data.count;
@@ -129,11 +151,11 @@ const ProductTable = () => {
         refetchOnMount: true,
     });
 
-    // update status value on product
+    // On update active value on category
 
     const { mutate, isPending } = useMutation({
         mutationFn: async (activate: string) => {
-            const response = await restApi.post(`/api/products/update-many`, {
+            const response = await restApi.post(`/api/category/update-many`, {
                 ids: ids,
                 activate,
             });
@@ -144,7 +166,7 @@ const ProductTable = () => {
             console.log('ERROR', error);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['products'] }).then(() => setIds([]));
+            queryClient.invalidateQueries({ queryKey: ['categories'] }).then(() => setIds([]));
         },
     });
 
@@ -154,14 +176,18 @@ const ProductTable = () => {
 
     // Table columns & rows
 
-    const columns: GridColDef<ExtandDataProps>[] = [
+    const columns: GridColDef<ExtandCategory>[] = [
         {
             field: 'image',
             headerName: '',
-            width: 60,
+            width: 130,
             renderCell: ({ row }) => (
                 <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                    <Image unoptimized src={row.images![0].image?.url!} alt="thumbnail" width={40} height={40} />
+                    {row.image ? (
+                        <Image unoptimized src={row?.image?.url!} alt="thumbnail" width={40} height={40} />
+                    ) : (
+                        'Chưa cập nhật'
+                    )}
                 </div>
             ),
             sortable: false,
@@ -169,14 +195,11 @@ const ProductTable = () => {
         },
         {
             field: 'title',
-            headerName: 'Sản phẩm',
+            headerName: 'Tên danh mục',
             width: 220,
             renderCell: ({ row }) => (
                 <div className={styles.info}>
-                    <Link href={`/products/${row?.id}`}>{row?.title}</Link>
-                    <Link href={`/detail/${row?.id}`}>
-                        <IoEyeOutline href={`/detail/${row.id}`} />
-                    </Link>
+                    <Link href={`/categories/${row?.id}`}>{row?.title}</Link>
                 </div>
             ),
         },
@@ -188,54 +211,7 @@ const ProductTable = () => {
             sortable: false,
             filterable: false,
         },
-        {
-            field: 'inventory',
-            headerName: 'Hàng trong kho',
-            width: 190,
-            filterable: false,
-            valueGetter: (value, row) => {
-                const inventory = row.variants
-                    ? row.variants.reduce((v, init) => {
-                          const total = Number(init?.available?.split(' ')[0]) + v + row.inventory!;
-
-                          return total;
-                      }, 0)
-                    : row.inventory;
-
-                return `Hiện còn ${inventory} trong kho`;
-            },
-        },
-        {
-            field: 'category',
-            headerName: 'Danh mục',
-            width: 130,
-            valueGetter: (value, row) => `${row.category?.title || 'Chưa cập nhật'}`,
-            filterable: false,
-        },
-        {
-            field: 'product_type',
-            headerName: 'Loại',
-            width: 90,
-            valueGetter: (value) => value || 'Chưa cập nhật',
-            filterable: false,
-        },
-        {
-            field: 'supplies',
-            headerName: 'Nhà cung cấp',
-            width: 130,
-            valueGetter: (value) => value || 'Chưa cập nhật',
-            filterable: false,
-        },
-        {
-            field: 'createdAt',
-            headerName: 'Ngày tạo',
-            width: 220,
-            valueGetter: (_value, row) => new Date(row?.createdAt)?.toLocaleDateString(),
-        },
     ];
-
-    // Date time picker
-    const [showDate, setShowDate] = useState(false);
 
     return (
         <div>
@@ -272,35 +248,6 @@ const ProductTable = () => {
                             >
                                 Đã lưu trữ
                             </Button>
-
-                            {/* <TippyCustom
-                                interactive
-                                trigger="click"
-                                placement="bottom-end"
-                                arrow
-                                render={(attrs) => (
-                                    <LocalizationProvider adapterLocale="vi" dateAdapter={AdapterDayjs}>
-                                        <DateCalendar
-                                            sx={{ backgroundColor: 'white', boxShadow: '0 0 1px rgba(0,0,0.3)' }}
-                                            onChange={(value) => {
-                                                router.push(
-                                                    `${pathname}?${createQueryString([
-                                                        {
-                                                            name: 'date',
-                                                            value: value.$d,
-                                                        },
-                                                    ])}`,
-                                                );
-                                            }}
-                                            {...attrs}
-                                        />
-                                    </LocalizationProvider>
-                                )}
-                            >
-                                <Button onClick={() => setShowDate(!showDate)} activeType="button" variant="defaulted">
-                                    Lọc theo ngày
-                                </Button>
-                            </TippyCustom> */}
                         </div>
                     </div>
                     <div className={styles.wrapper_action}>
@@ -315,7 +262,6 @@ const ProductTable = () => {
                 {/* table */}
 
                 <div className={styles.box}>
-                    {/* Action data grid */}
                     <div
                         className={styles.table_action}
                         style={
@@ -384,15 +330,15 @@ const ProductTable = () => {
                             </TippyCustom>
                         </div>
                     </div>
-                    {/* Table grid data */}
+
                     <div className={styles.table_wrapper}>
                         <DataGrid
                             rowHeight={62}
-                            rows={products?.data!}
+                            rows={categories?.data!}
                             columns={columns}
                             hideFooterPagination
                             checkboxSelection
-                            sx={{ border: 0, minHeight: 500 }}
+                            sx={{ border: 0, minHeight: 400 }}
                             onRowSelectionModelChange={(row) => {
                                 setIds(row as string[]);
                             }}
@@ -416,7 +362,6 @@ const ProductTable = () => {
                                     noRowsVariant: 'skeleton',
                                 },
                             }}
-                            disableRowSelectionOnClick
                         />
                     </div>
                 </div>
@@ -424,7 +369,7 @@ const ProductTable = () => {
                 {/* Pagination */}
             </div>
             <div className={styles.paginate_wrapper}>
-                {products?.data?.length! > 0 && (
+                {categories?.data.length! > 0 && (
                     <Pagination
                         onChange={onChange}
                         count={count!}
@@ -438,4 +383,4 @@ const ProductTable = () => {
     );
 };
 
-export default ProductTable;
+export default CategoriesTable;

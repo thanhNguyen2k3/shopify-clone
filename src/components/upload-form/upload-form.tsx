@@ -10,9 +10,10 @@ import ModalUpload from '../modal/modal-upload';
 type Props = {
     images?: ImageType[];
     setImages?: Dispatch<SetStateAction<ImageType[]>>;
+    typeToUpload?: any | 'checkbox';
 };
 
-const UploadForm = ({ setImages, images }: Props) => {
+const UploadForm = ({ setImages, images, typeToUpload }: Props) => {
     const [showModalUpload, setShowModalUpload] = useState<boolean>(false);
     const [fileIds, setFileIds] = useState<ImageType[]>(images! || []);
 
@@ -59,7 +60,7 @@ const UploadForm = ({ setImages, images }: Props) => {
                     </div>
                 ) : (
                     <div className={styles.box} onClick={onShowModal}>
-                        <Button activeType="button" sx={{ color: '#000' }} variant="custom">
+                        <Button activeType="button" type="button" sx={{ color: '#000' }} variant="custom">
                             Chọn tệp hiện có
                         </Button>
                         <p>Chấp nhận hình ảnh, video hoặc mô hình 3D</p>
@@ -73,7 +74,7 @@ const UploadForm = ({ setImages, images }: Props) => {
                 fileStates={fileIds}
                 fileDispath={setFileIds}
                 onSelected={handleSelected}
-                checkboxType="checkbox"
+                checkboxType={typeToUpload || 'checkbox'}
             />
         </div>
     );
