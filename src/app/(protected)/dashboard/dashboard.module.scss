@@ -1,0 +1,31 @@
+.wrapper {
+    .total_box {
+        display: grid;
+        grid-template-columns: 1fr repeat(4);
+        gap: 8px;
+    }
+
+    .chart {
+        margin-top: 24px;
+        border: 1px solid #dddddd;
+        border-radius: 8px;
+        padding: 6px 12px;
+
+        h2 {
+            margin-bottom: 24px;
+        }
+    }
+
+    .wrapper_chart {
+        margin-top: 24px;
+        display: flex;
+        border-radius: 8px;
+        padding: 12px 12px;
+        gap: 12px;
+
+        .pie {
+            background-color: #fff;
+            border-radius: 8px;
+        }
+    }
+}

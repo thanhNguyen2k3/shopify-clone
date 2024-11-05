@@ -65,6 +65,8 @@ model User {
   orders               Order[]
   contact_informations ContactInformation[]
 
+  active Boolean @default(true)
+
   @@map("users")
 }
 

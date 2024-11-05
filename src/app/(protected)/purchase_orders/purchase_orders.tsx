@@ -132,7 +132,7 @@ const PurchaseOrders = () => {
     const { mutate, isPending } = useMutation({
         mutationFn: async (orders_status: ORDER_STATUS) => {
             const response = await restApi.post(`/api/purchase_orders/status`, {
-                ids: ids,
+                order_ids: ids,
                 orders_status,
             });
 
@@ -203,8 +203,6 @@ const PurchaseOrders = () => {
             headerName: 'Hành động',
             width: 120,
             renderCell: ({ row }) => {
-                console.log(row);
-
                 return (
                     <>
                         <Button onClick={() => reactToPrintFn()} activeType="button" variant="underline">
@@ -253,35 +251,6 @@ const PurchaseOrders = () => {
                             >
                                 Đã lưu trữ
                             </Button>
-
-                            {/* <TippyCustom
-                                interactive
-                                trigger="click"
-                                placement="bottom-end"
-                                arrow
-                                render={(attrs) => (
-                                    <LocalizationProvider adapterLocale="vi" dateAdapter={AdapterDayjs}>
-                                        <DateCalendar
-                                            sx={{ backgroundColor: 'white', boxShadow: '0 0 1px rgba(0,0,0.3)' }}
-                                            onChange={(value) => {
-                                                router.push(
-                                                    `${pathname}?${createQueryString([
-                                                        {
-                                                            name: 'date',
-                                                            value: value.$d,
-                                                        },
-                                                    ])}`,
-                                                );
-                                            }}
-                                            {...attrs}
-                                        />
-                                    </LocalizationProvider>
-                                )}
-                            >
-                                <Button onClick={() => setShowDate(!showDate)} activeType="button" variant="defaulted">
-                                    Lọc theo ngày
-                                </Button>
-                            </TippyCustom> */}
                         </div>
                     </div>
                     <div className={styles.wrapper_action}>
@@ -314,7 +283,7 @@ const PurchaseOrders = () => {
                             </Button>
                             <select
                                 onChange={(e) => {
-                                    if (ids) mutate(e.target.value as ORDER_STATUS);
+                                    if (ids) return mutate(e.target.value as ORDER_STATUS);
                                 }}
                                 defaultValue={ORDER_STATUS.AWAITING}
                                 className={styleOrder.select_option}

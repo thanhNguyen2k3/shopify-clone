@@ -1,0 +1,32 @@
+.wrapper {
+    border: 1px solid #575757;
+    padding: 12px 24px;
+    border-radius: 8px;
+
+    h1 {
+        font-weight: 600;
+        margin: 4px 0;
+    }
+
+    span {
+        color: #7b7b7b;
+        font-size: 12px;
+    }
+}
+
+.title {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    select {
+        outline: none;
+        border-radius: 4px;
+    }
+}

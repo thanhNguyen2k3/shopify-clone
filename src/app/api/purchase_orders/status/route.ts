@@ -5,7 +5,7 @@ export const POST = async (req: NextRequest) => {
     try {
         const { orders_status, order_ids } = await req.json();
 
-        if (!order_ids) {
+        if (order_ids?.length === 0) {
             return NextResponse.json({ message: 'Không tìm thấy id đơn hàng' }, { status: 201 });
         }
 
